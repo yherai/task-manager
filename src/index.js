@@ -14,6 +14,7 @@ app.post('/users', async (req, res) => {
 
   try {
     await user.save();
+
     res.status(201).send(user);
   } catch (error) {
     res.status(400).send(error);
@@ -23,6 +24,7 @@ app.post('/users', async (req, res) => {
 app.get('/users', async (req, res) => {
   try {
     const users = await User.find({});
+
     res.send(users);
   } catch (error) {
     res.status(500).send(error);
@@ -45,6 +47,35 @@ app.get('/users/:id', async (req, res) => {
   }
 });
 
+app.patch('/users/:id', async (req, res) => {
+  const { params = {}, body } = req;
+  const { id } = params;
+  const updates = Object.keys(body);
+  const allowedUpdates = ['name', 'email', 'password', 'age'];
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValidOperation) {
+    return res.status(400).send({ error: 'Invalid update' });
+  }
+
+  try {
+    const user = await User.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      return res.status(404).send();
+    }
+
+    res.send(user);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 // Tasks endpoints
 app.post('/tasks', async (req, res) => {
   const task = new Task(req.body);
@@ -61,6 +92,7 @@ app.post('/tasks', async (req, res) => {
 app.get('/tasks', async (req, res) => {
   try {
     const tasks = await Task.find({});
+
     res.send(tasks);
   } catch (error) {
     res.status(500).send(error);
@@ -72,6 +104,36 @@ app.get('/tasks/:id', async (req, res) => {
 
   try {
     const task = await Task.findById(id);
+
+    if (!task) {
+      res.status(404).send();
+    }
+
+    res.send(task);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+app.patch('/tasks/:id', async (req, res) => {
+  const { params, body } = req;
+  const { id } = params;
+  const updates = Object.keys(body);
+  const allowedUpdates = ['description', 'completed'];
+
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValidOperation) {
+    res.status(400).send({ error: 'Invalid update' });
+  }
+
+  try {
+    const task = await Task.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!task) {
       res.status(404).send();
