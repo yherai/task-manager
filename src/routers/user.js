@@ -96,6 +96,16 @@ router.delete('/users/me', auth, async (req, res) => {
 
 const avatar = multer({
   dest: 'avatars',
+  limits: {
+    fileSize: 1000000,
+  },
+  fileFilter(req, file, callback) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+      return callback(new Error('Plase upload an image'));
+    }
+
+    callback(undefined, true);
+  },
 });
 
 router.post('/users/me/avatar', avatar.single('avatar'), (req, res) => {
