@@ -101,15 +101,22 @@ const avatar = multer({
   },
   fileFilter(req, file, callback) {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-      return callback(new Error('Plase upload an image'));
+      return callback(new Error('Please upload an image'));
     }
 
     callback(undefined, true);
   },
 });
 
-router.post('/users/me/avatar', avatar.single('avatar'), (req, res) => {
-  res.send();
-});
+router.post(
+  '/users/me/avatar',
+  avatar.single('avatar'),
+  (req, res) => {
+    res.send();
+  },
+  (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
+  }
+);
 
 module.exports = router;
